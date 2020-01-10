@@ -1,0 +1,22 @@
+.DS_Store
+node_modules
+/dist
+.env.development
+*/createManagement/index.vue
+
+# Log files
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.env.development
+
+# Editor directories and files
+.idea
+.vscode
+.history
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw*
+.env.development

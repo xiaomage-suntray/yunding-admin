@@ -1,0 +1,44 @@
+image: docker:latest
+
+cache:
+  paths:
+    - node_modules/
+services:
+  - name: docker:dind
+    command: ["--insecure-registry=new001.suntrayoa.com"]
+
+stages:
+  - build
+  - deploy
+
+node-build:
+  image: node:latest
+  stage: build
+  script: "npm audit fix && npm install && npm run build"
+#  script: "npm install && yarn build"
+#  script: "npm install && npm run build" 
+  only: 
+    - test
+  artifacts:
+    name: "dist"
+    untracked: true
+    paths:
+      - $CI_PROJECT_DIR/dist
+
+docker-run:
+  stage: deploy
+  image: kroniak/ssh-client
+  before_script:
+     - mkdir -p ~/.ssh
+     - chmod 700 ~/.ssh
+     - echo -e "Host *\n\tStrictHostKeyChecking no\n\n" > ~/.ssh/config
+     - echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
+     - chmod 600 ~/.ssh/id_rsa
+  only:
+    - test
+  script:
+    - scp -r $CI_PROJECT_DIR/dist root@$CI_REGISTRY:/opt/fzjc-vue-file/
+  only:
+  - test
+
+
