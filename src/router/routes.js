@@ -66,14 +66,24 @@ const frameIn = [
                 name: `${pre}index`,
                 component: () => import('@/pages/sys/carNumberLimit/index'),
                 meta: { ...meta, title: '汽车限行' }
-            },
-            {
-                path: 'class',
-                name: `${pre}class`,
-                component: () => import('@/pages/sys/commodity/class'),
-                meta: { ...meta, title: '商品分类' }
             }
         ])('carsystem-')
+    },
+    // 天气预报
+    {
+        path: '/weatherInfo',
+        name: 'weatherInfo',
+        meta,
+        redirect: { name: 'weatherInfo' },
+        component: layoutHeaderAside,
+        children: (pre => [
+            {
+                path: 'index',
+                name: `${pre}index`,
+                component: () => import('@/pages/sys/weatherInfo/index'),
+                meta: { ...meta, title: '天气预报' }
+            }
+        ])('weatherInfo-')
     },
     // 商品管理
     {

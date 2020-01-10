@@ -27,131 +27,130 @@
 </template>
 
 <script>
-    import TableTreeColumn from '@/components/table-tree-column'
-    import {mapActions} from 'vuex'
+import TableTreeColumn from '@/components/table-tree-column'
+import { mapActions } from 'vuex'
 
-    export default {
-        components:{
-            TableTreeColumn
-        },
-        data() {
-            return {
-                //添加商品分类
-                addTypeName: {
-                    name: ' ',
-                    parentId: '',
-                    id: ''
-                },
-                //表格数据
-                typeList: [{
-                    createdTime: '2016-05-03',
-                    goodsClassNumber: '01001',
-                    goodsClassName: '印刷品',
-                    thename: '张三'
-                }],
-                // 弹出框状态
-                dialogForm: false,
-                // 添加数据表单
-                addForm: {
-                    name: '',
-                    code: '',
-                    date: '',
-                    address: ''
-                },
-                //宽度
-                formLableWidth: '120px',
-                //选中数据
-                multipleSelection: [],
-                // dsable 是否禁用
-                disableTrue: false
+export default {
+    components: {
+        TableTreeColumn
+    },
+    data () {
+        return {
+            // 添加商品分类
+            addTypeName: {
+                name: ' ',
+                parentId: '',
+                id: ''
+            },
+            // 表格数据
+            typeList: [{
+                createdTime: '2016-05-03',
+                goodsClassNumber: '01001',
+                goodsClassName: '印刷品',
+                thename: '张三'
+            }],
+            // 弹出框状态
+            dialogForm: false,
+            // 添加数据表单
+            addForm: {
+                name: '',
+                code: '',
+                date: '',
+                address: ''
+            },
+            // 宽度
+            formLableWidth: '120px',
+            // 选中数据
+            multipleSelection: [],
+            // dsable 是否禁用
+            disableTrue: false
+        }
+    },
+    mounted () {
+        this.getTableData()
+    },
+    methods: {
+        ...mapActions('d2admin/menu', [
+            'asideCollapseOpen'
+        ]),
+        closeDialog () {
+            this.dialogForm = false
+            this.addTypeName = {
+                goodsClassName: '',
+                goodsClassParentid: '',
+                goodsClassNumber: ''
             }
         },
-        mounted() {
-            this.getTableData()
-        },
-        methods: {
-            ...mapActions('d2admin/menu', [
-                'asideCollapseOpen'
-            ]),
-            closeDialog() {
-                this.dialogForm = false
+        openDialog (val) {
+            if (val) {
                 this.addTypeName = {
-                    goodsClassName: '',
-                    goodsClassParentid: '',
-                    goodsClassNumber: ''
+                    name: val.name,
+                    parentId: val.parentId,
+                    id: val.id
                 }
-            },
-            openDialog(val) {
-                if (val) {
-                    this.addTypeName = {
-                        name: val.name,
-                        parentId: val.parentId,
-                        id: val.id
-                    }
-                }
-                this.disableTrue = val ? true : false;
-                this.dialogForm = true
-            },
-            sysAreaDelete(val) {
-                let data = {id: val.id}
-                this.$http({
-                    url: this.$http.adornUrl(`/sysArea/delete`),
-                    method: 'post',
-                    data
-                }).then((data) => {
-                    this.getTableData()
-                    this.$message({
-                        message: '删除成功！',
-                        type: 'success'
-                    });
-                })
-            },
-            getTableData(){
-                this.$http({
-                    url: this.$http.adornUrl(`/sysArea/list`),
-                    method: 'post',
-                }).then((data) => {
-                    this.typeList = data.result
-                    console.log('data', data)
-                })
-            },
-            addType(){
-                this.disableTrue ? delete this.addTypeName.parentId : delete this.addTypeName.id
-                let data = this.addTypeName,
-                    msg = this.disableTrue ? '修改成功！' : '添加成功',
-                    url = this.disableTrue ? this.$http.adornUrl(`/sysArea/update`) : this.$http.adornUrl(`/sysArea/save`)
-
-                this.$http({
-                    url,
-                    method: 'post',
-                    data
-                }).then((data) => {
-                    console.log('data', data)
-                    this.$message({
-                        message: msg,
-                        type: 'success'
-                    });
-                    this.closeDialog()
-                    this.getTableData()
-
-                })
-            },
-
-            toggleSelection(rows) {
-                if (rows) {
-                    rows.forEach(row => {
-                        this.$refs.multipleTable.toggleRowSelection(row);
-                    });
-                } else {
-                    this.$refs.multipleTable.clearSelection();
-                }
-            },
-            handleSelectionChange(val) {
-                this.multipleSelection = val;
-                console.log(this.multipleSelection, 'this.multipleSelection')
             }
+            this.disableTrue = !!val
+            this.dialogForm = true
+        },
+        sysAreaDelete (val) {
+            let data = { id: val.id }
+            this.$http({
+                url: this.$http.adornUrl(`/sysArea/delete`),
+                method: 'post',
+                data
+            }).then((data) => {
+                this.getTableData()
+                this.$message({
+                    message: '删除成功！',
+                    type: 'success'
+                })
+            })
+        },
+        getTableData () {
+            this.$http({
+                url: this.$http.adornUrl(`/sysArea/list`),
+                method: 'post'
+            }).then((data) => {
+                this.typeList = data.result
+                console.log('data', data)
+            })
+        },
+        addType () {
+            this.disableTrue ? delete this.addTypeName.parentId : delete this.addTypeName.id
+            let data = this.addTypeName,
+                msg = this.disableTrue ? '修改成功！' : '添加成功',
+                url = this.disableTrue ? this.$http.adornUrl(`/sysArea/update`) : this.$http.adornUrl(`/sysArea/save`)
+
+            this.$http({
+                url,
+                method: 'post',
+                data
+            }).then((data) => {
+                console.log('data', data)
+                this.$message({
+                    message: msg,
+                    type: 'success'
+                })
+                this.closeDialog()
+                this.getTableData()
+            })
+        },
+
+        toggleSelection (rows) {
+            if (rows) {
+                rows.forEach(row => {
+                    this.$refs.multipleTable.toggleRowSelection(row)
+                })
+            } else {
+                this.$refs.multipleTable.clearSelection()
+            }
+        },
+        handleSelectionChange (val) {
+            this.multipleSelection = val
+            console.log(this.multipleSelection, 'this.multipleSelection')
         }
     }
+}
 </script>
 <style>
     .el-width100{

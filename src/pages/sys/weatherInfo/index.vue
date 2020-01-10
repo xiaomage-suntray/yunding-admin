@@ -1,9 +1,7 @@
 <template lang="pug">
 d2-container
     el-row.btns
-        el-button(size="small" type="primary" @click="nesCommodity({title:'限行编辑',type:1})") 新增
-        el-button( type="success" size="small" @click="batchUpdate('statusSet-1')") 批量生效
-        el-button( type="warning" size="small" @click="batchUpdate('statusSet-2')") 批量失效
+        el-button(size="small" type="primary" @click="nesCommodity({title:'城市添加',type:1})") 新增城市
         el-button( type="danger" size="small" @click="batchUpdate('deletes')") 批量删除
 
     el-row
@@ -12,10 +10,7 @@ d2-container
             el-table-column(v-for="(item,index) in tableHead" :prop="item.prop" :label="item.label" :width="item.width" :key="index")
             el-table-column(label="操作" fixed="right" width="250")
                 template(slot-scope="scope")
-                    el-button( v-if="scope.row.status === 2" type="success" size="small" @click="nesCommodity({title:'修改规则',type:2,data:scope.row})") 修改
-                    el-button( v-if="scope.row.status === 2" type="success" size="small" @click="goodsUpdate(1,scope.row)") 生效
-                    el-button( v-if="scope.row.status === 2" type="danger" size="small" @click="goodsDelete(scope.row)") 删除
-                    el-button( v-if="scope.row.status === 1" type="warning" size="small" @click="goodsUpdate(2,scope.row)") 失效
+                    el-button( type="danger" size="small" @click="goodsDelete(scope.row)") 删除
         el-pagination(@size-change='sizeChangeHandle', @current-change='currentChangeHandle', :current-page='getListps.page', :page-sizes='[10, 20, 50, 100]', :total='getListps.pageSize', layout='total, sizes, prev, pager, next, jumper')
 
     el-dialog( v-if="dialogObj" :visible.sync="dialogObj.state" :fullscreen="false" :show-close="false" class="noPadding" :close-on-click-modal="false")
@@ -27,22 +22,14 @@ d2-container
             el-button(v-if="dialogObj.type == 2" type="primary" @click="goodsSave({type:2})") 保存
         el-tabs(v-model="activeTab" @tab-click="handleClick")
             el-tab-pane(label="表单" name="form")
-                el-row(type="flex" justify="end")
+                el-row(type="flex" justify="start")
                     el-form(label-width='80px' :model="pushData" ref="rulesPushData"  :rules="rules" :validate-on-rule-change="false")
-                        el-col(:xs="24" :md="12" :lg="24")
-                            el-form-item(label="城市:" )
-                               el-select(v-model="pushData.cityNameList" multiple filterable remote reserve-keyword placeholder="请输入关键词"  :remote-method="remoteMethod" :loading="selectloading" style="width:100%")
-                                    el-option(v-for="item in options4" :key="item.cityname" :label="item.cityname" :value="item.cityname")
-                        el-col(:xs="24" :md="12" :lg="24")
-                            el-form-item(label="时间段:")
-                                el-date-picker(v-model="pushData.value4" type="daterange" :picker-options="pickerOptions2" range-separator="至" start-placeholder="开始日期"  end-placeholder="结束日期"  align="right")
-                        el-col(:xs="24" :md="12" :lg="24")
-                            el-form-item(label="限行规则:")
-                                el-input(size="medium" v-model="pushData.rules"  type="textarea" :rows="2")
+                        el-form-item(label="城市:" )
+                            el-select(v-model="pushData.adcode" filterable remote reserve-keyword placeholder="请输入关键词"  :remote-method="remoteMethod" :loading="selectloading" style="width:100%")
+                                el-option(v-for="item in options4" :key="item.cityname" :label="item.cityname" :value="item.adcode")
 </template>
 <script>
 import { mapState } from 'vuex'
-import moment from 'moment'
 
 export default {
     data () {
@@ -83,22 +70,20 @@ export default {
             rules: { },
             // table表结构
             tableHead: [
-                { prop: 'cityname', label: '城市名称' },
-                { prop: 'startTime', label: '限行开始时间' },
-                { prop: 'endTime', label: '限行结束时间', type: 'icon' },
-                { prop: 'rules', label: '限行规则', type: 'icon' },
-                { prop: 'createDate', label: '编辑时间' }
+                { prop: 'city', label: '城市名称' },
+                { prop: 'adcode', label: '城市编码' },
+                { prop: 'weather', label: '天气', type: 'icon' },
+                { prop: 'temperature', label: '温度', type: 'icon' },
+                { prop: 'winddirection', label: '风向' },
+                { prop: 'windpowe', label: '分力' },
+                { prop: 'humidity', label: '湿度' },
+                { prop: 'reporttime', label: '数据更新时间' }
             ],
             // 主页Table 展示表格
             tableData: [],
             // 提交数据
             pushData: {
-                cityNameList: [],
-                startTime: '',
-                endTime: '',
-                rules: '',
-                createDate: new Date(),
-                value4: []
+                adcode: ''
             },
             dialogObj: {
                 title: '',
@@ -172,7 +157,7 @@ export default {
         goodsDelete (val) {
             let data = [ val.id ]
             this.$http({
-                url: this.$http.adornUrl('/carNumberLimit/delete'),
+                url: this.$http.adornUrl('/weatherinfo/delete'),
                 method: 'post',
                 data
             }).then(data => {
@@ -198,7 +183,7 @@ export default {
             }
             console.log(params, 'paramsparams')
             this.$http({
-                url: this.$http.adornUrl('/carNumberLimit/list'),
+                url: this.$http.adornUrl('/weatherinfo/list'),
                 method: 'post',
                 params
             }).then((data) => {
@@ -210,42 +195,30 @@ export default {
         },
         // 新增修改商品
         goodsSave (val) {
-            this.$refs['rulesPushData'].validate((valid) => {
-                if (valid) {
-                    let url = ''
-                    let msg = ''
-                    let data = this.pushData
-                    data.startTime = moment(data.value4[0]).format('YYYY-MM-DD ')
-                    data.endTime = moment(data.value4[1]).format('YYYY-MM-DD')
-                    // 清除返回的无效参数
-                    delete data.value4
-                    delete data.createDate
-                    delete data.createdUserId
-                    if (val.type === 1) {
-                        url = this.$http.adornUrl(`/carNumberLimit/save`)
-                        msg = '成功添加限行规则'
-                    }
-                    if (val.type === 2) {
-                        data.cityname = data.cityNameList[0]
-                        delete data.cityNameList
-                        url = this.$http.adornUrl(`/carNumberLimit/update`)
-                        msg = '成功修改限行规则'
-                    }
-                    this.$http({
-                        url,
-                        method: 'post',
-                        data: data
-                    }).then((data) => {
-                        // 成功操作
-                        if (data.msg === 'success') {
-                            this.getDataList()
-                            this.$message({
-                                message: msg,
-                                type: 'success'
-                            })
-                            this.dialogObj.state = false
-                        }
+            let url = ''
+            let msg = ''
+            let data = this.pushData
+            // 清除返回的无效参数
+            delete data.value4
+            delete data.createDate
+            delete data.createdUserId
+            if (val.type === 1) {
+                url = this.$http.adornUrl(`/weatherinfo/save`)
+                msg = '成功添加城市'
+            }
+            this.$http({
+                url,
+                method: 'post',
+                data: data
+            }).then((data) => {
+                // 成功操作
+                if (data.msg === 'success') {
+                    this.getDataList()
+                    this.$message({
+                        message: msg,
+                        type: 'success'
                     })
+                    this.dialogObj.state = false
                 }
             })
         },
@@ -257,7 +230,7 @@ export default {
             var data = {}
             data.status = status
             data.id = row.id
-            var url = this.$http.adornUrl(`/carNumberLimit/update`)
+            var url = this.$http.adornUrl(`/weatherinfo/update`)
             var msg = '成功修改限行规则'
             this.$http({
                 url,
@@ -283,37 +256,8 @@ export default {
                 type: val.type,
                 state: true
             }
-            if (val.type === 1) {
-                this.dataList = []
-                // 新增清空数据
-                this.pushData = {
-                    cityNameList: [],
-                    startTime: '',
-                    endTime: '',
-                    rules: '',
-                    createDate: new Date(),
-                    value4: []
-                }
-                this.dataList = []
-                this.historyDataList = []
-                this.cascader = []
-                this.tableNameBj = ''
-                this.pushData.createdUserId = this.info.name
-            }
-            if (val.type === 2) {
-                this.pushData = {
-                    id: '',
-                    cityNameList: [],
-                    startTime: '',
-                    endTime: '',
-                    rules: '',
-                    value4: []
-                }
-                this.pushData.cityNameList = [val.data.cityname]
-                this.pushData.value4[0] = val.data.startTime
-                this.pushData.value4[1] = val.data.endTime
-                this.pushData.rules = val.data.rules
-                this.pushData.id = val.data.id
+            this.pushData = {
+                adcode: ''
             }
         },
         batchUpdate (type) {
@@ -334,7 +278,7 @@ export default {
                     type: 'warning'
                 }).then(() => {
                     this.$http({
-                        url: this.$http.adornUrl('/carNumberLimit/bachUpdate'),
+                        url: this.$http.adornUrl('/weatherinfo/bachUpdate'),
                         method: 'post',
                         data: { 'ids': ids, status: 1 }
                     }).then((data) => {
@@ -359,7 +303,7 @@ export default {
                     type: 'warning'
                 }).then(() => {
                     this.$http({
-                        url: this.$http.adornUrl('/carNumberLimit/bachUpdate'),
+                        url: this.$http.adornUrl('/weatherinfo/bachUpdate'),
                         method: 'post',
                         data: { 'ids': ids, status: 2 }
                     }).then((data) => {
