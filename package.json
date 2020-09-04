@@ -39,7 +39,7 @@
     "moment": "^2.24.0",
     "nightwatch": "1.0.14",
     "nprogress": "^0.2.0",
-    "papaparse": "^4.3.6",
+    "papaparse": "^5.2.0",
     "particles.js": "^2.0.0",
     "pinyin": "^2.8.3",
     "pug": "^2.0.3",
