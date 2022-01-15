@@ -34,7 +34,7 @@
     "jspdf": "^1.5.3",
     "lodash": "^4.17.15",
     "lowdb": "^1.0.0",
-    "marked": "^0.7.0",
+    "marked": "^4.0.10",
     "mockjs": "^1.0.1-beta3",
     "moment": "^2.24.0",
     "nightwatch": "1.0.14",
